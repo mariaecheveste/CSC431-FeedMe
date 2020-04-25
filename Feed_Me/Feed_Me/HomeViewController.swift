@@ -106,9 +106,11 @@ class HomeViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDa
         
         PricePicker.delegate = self
         PricePicker.dataSource = self
+        PricePicker.tag = 2;
         
         DistancePicker.delegate = self
         DistancePicker.dataSource = self
+        DistancePicker.tag = 1;
         
         // Do any additional setup after loading the view.
     }
