@@ -20,25 +20,26 @@ class MealView: UIViewController {
     @IBOutlet var Delivery: UILabel!
     var mealInfo : HomeViewController.mealInformation?
      
-     @objc func enable(){
-         //FEEDME.isEnabled = true
+    @objc func enable(){
+     //FEEDME.isEnabled = true
          HomeViewController.GlobalVariable.choiceNum = 3
-     }
-    
-     @IBAction func countcheck(_ sender: Any) {
+    }
+
+    @IBAction func countcheck(_ sender: Any) {
          if HomeViewController.GlobalVariable.choiceNum == 0{
              
              let timer = Timer.scheduledTimer(timeInterval: 10.0, target: self, selector: #selector(enable), userInfo: nil, repeats: false)
              
          }
-     }
+    }
+    
     func getDelivery(){
         let rID = mealInfo?.rID as! String
         let deliveryKeys = ["uberEatsAvailability", "postmatesAvailability", "website"]
         let query = "SELECT uberEatsAvailability, postmatesAvailability, website FROM DeliveryOptions WHERE restaurantID=\"\(rID)\";"
         
         print(rID)
-        let data = AppDelegate.dB.query(queryString: query, keys: deliveryKeys)
+        let data = DatabaseManager.shared.query(queryString: query, keys: deliveryKeys)
         
         print(data)
         let deliveryData = data[0]
@@ -57,6 +58,7 @@ class MealView: UIViewController {
         }
         
     }
+    
     func loadInfo(){
         RestaurantName.text = mealInfo?.restaurantName
         MealName.text = mealInfo?.mealName
@@ -66,7 +68,8 @@ class MealView: UIViewController {
         
         getDelivery()
     }
-     override func viewDidLoad() {
+    
+    override func viewDidLoad() {
          super.viewDidLoad()
          
          Retrys.text = "\(HomeViewController.GlobalVariable.choiceNum)"
@@ -75,9 +78,10 @@ class MealView: UIViewController {
              .foregroundColor: UIColor.blue,
              .underlineStyle: NSUnderlineStyle.single.rawValue
          ]
+
          // Do any additional setup after loading the view.
         loadInfo()
-     }
+    }
 
 
 }

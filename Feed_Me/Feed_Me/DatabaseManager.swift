@@ -12,6 +12,8 @@ import SQLite3;
 
 
 class DatabaseManager: NSObject {
+        
+    static let shared: DatabaseManager = DatabaseManager()
     private let dbFileName = "restaurants.db"
     private var database:FMDatabase!
 

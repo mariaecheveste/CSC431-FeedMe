@@ -11,44 +11,45 @@ import UIKit
 class HomeViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     
         
-        struct GlobalVariable{
-           static var choiceNum = 3
-        }
-        
-    //UI buttons:
-        //Feed_ME button
-        @IBOutlet var FEEDME: RoundButton!
+    struct GlobalVariable{
+       static var choiceNum = 3
+    }
     
-        //MEAL criteria FILTERS
-        @IBOutlet weak var Vegan: UILabel!
-        @IBOutlet weak var veganSwitch: UISwitch!
-        @IBOutlet weak var Price: UILabel!
-        @IBOutlet weak var PricePicker: UIPickerView!
-        @IBOutlet weak var Distance: UILabel!
-        @IBOutlet weak var DistancePicker: UIPickerView!
+//UI buttons:
+    //Feed_ME button
+    @IBOutlet var FEEDME: RoundButton!
+
+    //MEAL criteria FILTERS
+    @IBOutlet weak var Vegan: UILabel!
+    @IBOutlet weak var veganSwitch: UISwitch!
+    @IBOutlet weak var Price: UILabel!
+    @IBOutlet weak var PricePicker: UIPickerView!
+    @IBOutlet weak var Distance: UILabel!
+    @IBOutlet weak var DistancePicker: UIPickerView!
+
+    //lockout label after three tries
+    @IBOutlet var Lockout: UILabel!
+    @IBOutlet var NotFound: UILabel!
     
-        //lockout label after three tries
-        @IBOutlet var Lockout: UILabel!
-        @IBOutlet var NotFound: UILabel!
-        
-        //values of price/distance filter
-        let prices = ["$", "$$", "$$$", "$$$$"]
-        let distances = ["<1 mile", "1-5 miles", "5-10 miles"]
-        
-        //for passing data to meal View
-        struct mealInformation{
-            var rID: String?
-            var restaurantName: String?
-            var restaurantAddress: String?
-            var mealName: String?
-            var mealPrice: String?
-        }
-        //store values to query with filled with defaults
-        var vegan = "yes"
-        var price = "(\"$\")"
-        var distance = "(\"1\")"
-        
-        var mealDetails : mealInformation?
+    //values of price/distance filter
+    let prices = ["$", "$$", "$$$", "$$$$"]
+    let distances = ["<1 mile", "1-5 miles", "5-10 miles"]
+    
+    //for passing data to meal View
+    struct mealInformation{
+        var rID: String?
+        var restaurantName: String?
+        var restaurantAddress: String?
+        var mealName: String?
+        var mealPrice: String?
+    }
+    //store values to query with filled with defaults
+    var vegan = "no"
+    var price = "(\"$\")"
+    var distance = "(\"1\")"
+
+    
+    var mealDetails : mealInformation?
         
     
         
@@ -57,98 +58,97 @@ class HomeViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDa
         
         let addressKeys = ["street", "city", "state", "zipCode"]
         let query = "SELECT street, city, state, zipCode FROM Address WHERE restaurantId=\"\(id)\";"
-        let addressData = AppDelegate.dB.query(queryString: query, keys: addressKeys)
+        let addressData = DatabaseManager.shared.query(queryString: query, keys: addressKeys)
         
         let address = addressData[0].joined(separator: ", ")
         return address
         
     }
-        func pullRestaurant(rDetails :inout Array<String>) -> Bool {
     
-            let restaurantKeys = ["restaurantID", "restaurantName", "menuID"]
-            let query = "SELECT restaurantId, restaurantName, menuId FROM Restaurants WHERE veganOptions=\"\(vegan)\" AND price IN \(price) AND distance IN \(distance);"
+    func pullRestaurant(rDetails :inout Array<String>) -> Bool {
+    
+        let restaurantKeys = ["restaurantID", "restaurantName", "menuID"]
+        let query = "SELECT restaurantId, restaurantName, menuId FROM Restaurants WHERE veganOptions=\"\(vegan)\" AND price IN \(price) AND distance IN \(distance);"
             
-            let restaurantData = AppDelegate.dB.query(queryString: query, keys: restaurantKeys)
-            let randomRestaurant = restaurantData.randomElement()
+        let restaurantData = DatabaseManager.shared.query(queryString: query, keys: restaurantKeys)
+        let randomRestaurant = restaurantData.randomElement()
             
-            if(randomRestaurant == nil){
-                return false
-            }
+        if(randomRestaurant == nil){
+            return false
+        }
             
-            let restaurantID = randomRestaurant![0]
+        let restaurantID = randomRestaurant![0]
         
-            rDetails.append(contentsOf:(randomRestaurant)!)
-            rDetails.append(getAddress(id:restaurantID))
+        rDetails.append(contentsOf:(randomRestaurant)!)
+        rDetails.append(getAddress(id:restaurantID))
 
-            return true
-        }
+        return true
+    }
     
-        func pullMenu(rDetails:inout Array<String>){
+    func pullMenu(rDetails:inout Array<String>){
             
-            let mID = 2 //index in rDetails
-            let menuKeys = ["mealName", "priceDollars"]
-            let query = "SELECT mealName, priceDollars FROM Menus WHERE vegan=\"\(vegan)\" AND menuId=\"\(rDetails[mID])\";"
-            let mealData = AppDelegate.dB.query(queryString: query, keys: menuKeys)
+        let mID = 2 //index in rDetails
+        let menuKeys = ["mealName", "priceDollars"]
+        let query = "SELECT mealName, priceDollars FROM Menus WHERE vegan=\"\(vegan)\" AND menuId=\"\(rDetails[mID])\";"
+        let mealData = DatabaseManager.shared.query(queryString: query, keys: menuKeys)
             
-            let randomMeal = mealData.randomElement()
+        let randomMeal = mealData.randomElement()
             
-            if(randomMeal == nil){
-                print("Something went wrong!")
-                return
-            }
+        if(randomMeal == nil){
+            print("Something went wrong!")
+            return
+        }
             
-            rDetails.append(contentsOf: (randomMeal)!)
+        rDetails.append(contentsOf: (randomMeal)!)
         
             
-        }
+    }
     //SEGUE to meal view controller
-        func getMealStruct() -> Bool { //turn into boolean
-            let rID = 0 , rName = 1, rAdd = 3, mName = 4, mPrice = 5
-            var restaurantDetails = [String]()
+    func getMealStruct() -> Bool { //turn into boolean
+        let rID = 0 , rName = 1, rAdd = 3, mName = 4, mPrice = 5
+        var restaurantDetails = [String]()
             
-            if !pullRestaurant(rDetails : &restaurantDetails){
-                    return false
-                    //TO BE COMPLETED
-                    //add message regarding no restaurants with that criteria
-                }
+        if !pullRestaurant(rDetails : &restaurantDetails){
+            return false
+        }
                 
-            pullMenu(rDetails : &restaurantDetails)
+        pullMenu(rDetails : &restaurantDetails)
                 
                 //insert into struct that will be passed through
                 
-           mealDetails = mealInformation(rID: restaurantDetails[rID], restaurantName: restaurantDetails[rName], restaurantAddress: restaurantDetails[rAdd], mealName: restaurantDetails[mName], mealPrice: restaurantDetails[mPrice])
+        mealDetails = mealInformation(rID: restaurantDetails[rID], restaurantName: restaurantDetails[rName], restaurantAddress: restaurantDetails[rAdd], mealName: restaurantDetails[mName], mealPrice: restaurantDetails[mPrice])
             
-            print(restaurantDetails)
+        print(restaurantDetails)
             
-            return true
-        }
-       @IBAction func button(sender: UIButton){
+        return true
+    }
+    
+    @IBAction func button(sender: UIButton){
             
-            if GlobalVariable.choiceNum == 0{
+        if GlobalVariable.choiceNum == 0{
                 //already chose three times disable button
-                Lockout.isHidden = false
-                return
-            }
-            if(!getMealStruct()){
-                NotFound.isHidden = false
-                return
-            }
-            GlobalVariable.choiceNum -= 1
-        
-            performSegue(withIdentifier: "displayMeal", sender:sender)
-            
+            Lockout.isHidden = false
+            return
         }
+        if(!getMealStruct()){
+            NotFound.isHidden = false
+            return
+        }
+        GlobalVariable.choiceNum -= 1
+        
+        performSegue(withIdentifier: "displayMeal", sender:sender)
+            
+    }
     
         
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if(segue.identifier == "displayMeal"){
             if let mealView = segue.destination as? MealView {
                 mealView.mealInfo = mealDetails
-                print(mealDetails?.mealPrice)
             }
         }
-        
-        
+
+
     }
     
     //switch functions
@@ -165,61 +165,62 @@ class HomeViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDa
     }
         
     //picker functions
-        //how many columns/components in each picker
-        func numberOfComponents(in pickerView: UIPickerView) -> Int {
-            return 1
+    //how many columns/components in each picker
+    func numberOfComponents(in pickerView: UIPickerView) -> Int {
+        return 1
+    }
+
+    //gives picker the number of rows in each component
+    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        if pickerView.tag == 1 {
+            return distances.count
         }
-    
-        //gives picker the number of rows in each component
-        func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-            if pickerView.tag == 1 {
-                return distances.count
-            }
-            else{
-                return prices.count
-            }
+        else{
+            return prices.count
         }
-        //where the picker data is coming from
-        func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-            if pickerView.tag == 1 {
-                return "\(distances[row])"
-            }
-            else{
-                return "\(prices[row])"
-            }
+    }
+    //where the picker data is coming from
+    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        if pickerView.tag == 1 {
+            return "\(distances[row])"
         }
+        else{
+            return "\(prices[row])"
+        }
+    }
         // Capture the picker view selection
-        func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-            // This method is triggered whenever the user makes a change to the picker selection.
-            // The parameter named row and component represents what was selected.
-            if pickerView.tag == 1{
-                distance = getDistance(distanceLimit: distances[row])
-                //print(distance)
-            } else{
-                price = getPrice(priceLimit: prices[row])
-                //print(price)
-            }
-            
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        // This method is triggered whenever the user makes a change to the picker selection.
+        // The parameter named row and component represents what was selected.
+        if pickerView.tag == 1{
+            distance = storeDistance(distanceLimit: distances[row])
+            //print(distance)
+        } else{
+            price = storePrice(priceLimit: prices[row])
+            //print(price)
         }
-       
-        override func viewDidLoad() {
-            super.viewDidLoad()
-            
-            PricePicker.delegate = self
-            PricePicker.dataSource = self
-            PricePicker.tag = 2;
-            
-            DistancePicker.delegate = self
-            DistancePicker.dataSource = self
-            DistancePicker.tag = 1;
-            
-            Lockout.isHidden = true;
-            NotFound.isHidden = true;
-            // Do any additional setup after loading the view.
-            
-        }
-    //getters
-    func getDistance(distanceLimit:String) -> String{
+        
+    }
+   
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        PricePicker.delegate = self
+        PricePicker.dataSource = self
+        PricePicker.tag = 2;
+        
+        DistancePicker.delegate = self
+        DistancePicker.dataSource = self
+        DistancePicker.tag = 1;
+        
+        Lockout.isHidden = true;
+        NotFound.isHidden = true;
+        veganSwitch.setOn(false, animated: false)
+        // Do any additional setup after loading the view.
+        
+    }
+//getters
+    func storeDistance(distanceLimit:String) -> String{
         switch(distanceLimit){
             case("<1 mile"):
                 return "(\"0\",\"1\")"
@@ -231,17 +232,17 @@ class HomeViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDa
                 return "(\"0\",\"1\")"
         }
     }
-    
-    func getPrice(priceLimit:String) -> String{
+
+    func storePrice(priceLimit:String) -> String{
         switch(priceLimit){
             case("$"):
                 return "(\"$\")"
             case("$$"):
                 return "(\"$\",\"$$\")"
             case("$$$"):
-                return "(\"$\",\"$$\",\"$$$\")"
+                return "(\"$$\",\"$$$\")"
             case("$$$$"):
-                return "(\"$\",\"$$\",\"$$$\",\"$$$$\")"
+                return "(\"$$$\",\"$$$$\")"
             default:
                 return "(\"$\")"
         }
